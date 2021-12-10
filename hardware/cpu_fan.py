@@ -1,6 +1,6 @@
 # from PID import PID
 import ctypes
-from Q_learning import Agent
+from algorithms.Q_learning import Agent
 
 # import RPi.GPIO as GPIO
 import os
@@ -14,7 +14,7 @@ TEMP_THRESHOLD = 60
 TEMP_TARGET = 65
 
 
-class FAN(object):
+class cpu_fan(object):
     def __init__(self) -> None:
         super().__init__()
 

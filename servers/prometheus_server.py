@@ -17,27 +17,19 @@ class prometheus_server(object):
         self.g_pres = Gauge(metrics['u_pres']['key'], metrics['u_pres']['desc'])
         self.g_pres.set_function( lambda: self.__get_uart_pres() )
 
-        self.g_pres = Gauge(metrics['a_temp']['key'], metrics['a_temp']['desc'])
-        self.g_pres.set_function( lambda: self.__get_ada_temp() )
-
-        self.g_pres = Gauge(metrics['a_lamp']['key'], metrics['a_lamp']['desc'])
-        self.g_pres.set_function( lambda: self.__get_ada_lamp() )
 
         start_http_server(port)
         self.pwm = 0
         self.temp = 0
         self.humi = 0
         self.pres = 0
-        self.d_temp = 0
-        self.lamp = True
+
 
     def receive(self, data):
         self.pwm = data['fan']
         self.temp = data['uart']['temp']
         self.humi = data['uart']['humi']
         self.pres = data['uart']['pres']
-        self.d_temp = data['ada']['temp']
-        self.lamp = data['ada']['lamp']
         
     def __get_fan_pwm(self):
         return self.pwm
@@ -50,9 +42,3 @@ class prometheus_server(object):
 
     def __get_uart_pres(self):
         return self.pres
-  
-    def __get_ada_temp(self):
-        return self.d_temp
-
-    def __get_ada_lamp(self):
-        return 1 if self.lamp else 0

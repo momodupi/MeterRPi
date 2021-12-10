@@ -5,8 +5,8 @@ class adafruit_server(object):
     def __init__(self) -> None:
         super().__init__()
 
-        ADAFRUIT_IO_USERNAME = "momodupi"
-        ADAFRUIT_IO_KEY = "aio_NDkG04jPLPkg3aNLSMDo8TaCr9Im"
+        ADAFRUIT_IO_USERNAME = "username"
+        ADAFRUIT_IO_KEY = "key"
 
         self.feed_data = {'temp': 26, 'lamp': False}
         self.client = MQTTClient(ADAFRUIT_IO_USERNAME, ADAFRUIT_IO_KEY)
