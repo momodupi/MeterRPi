@@ -1,10 +1,21 @@
 import requests
 import json
+import datetime
 import time
 import os
 import hashlib
 import hmac
 
+TOKEN = 0
+INSTRUCTION = 1
+INFORMATION = 2
+STATUS = 3
+COMMAND = 4
+
+OFF = None
+LOW = 'switch_1'
+MIDDLE = 'switch_2'
+HIGH = 'switch_3'
 
 class hvac(object):
     def __init__(self) -> None:
@@ -14,54 +25,220 @@ class hvac(object):
         with open(f'{dll_path}/tuya_token.json') as json_file:
             __TOKEN = json.load(json_file)
 
-        self.device_id = __TOKEN['device_id']
-        self.client_id = __TOKEN['client_id']
-        self.clinet_secret = __TOKEN['clinet_secret']
+        self.h = {
+            'device_id': __TOKEN['device_id'],
+            'client_id': __TOKEN['client_id'],
+            'secret': __TOKEN['clinet_secret'],
+            'sign_method': 'HMAC-SHA256',
+            # 'HTTPMethod': 'POST',
+            'body': None,
+            'nonce': '123',
+        }
+        self.url = {
+            TOKEN: 'https://openapi.tuyaus.com/v1.0/token?grant_type=1',
+            INSTRUCTION: f'https://openapi.tuyaus.com/v1.0/iot-03/devices/{__TOKEN["device_id"]}/functions',
+            INFORMATION: f'https://openapi.tuyaus.com/v1.1/iot-03/devices/{__TOKEN["device_id"]}',
+            STATUS: f'https://openapi.tuyaus.com/v1.0/iot-03/devices/{__TOKEN["device_id"]}/status',
+            COMMAND: f'https://openapi.tuyaus.com/v1.0/iot-03/devices/{__TOKEN["device_id"]}/commands', 
+        }
 
-        self.__rqst_tuya_token()
+        self.token = None
 
-    def __rqst_tuya_token(self):
-        tsp = str(int(time.time()*1000))
-        signature = hmac.new(
-            self.clinet_secret.encode('utf-8'),
-            msg=payload.encode('utf-8'),
-            digestmod=hashlib.sha256
-        ).hexdigest().upper()
-        rqst = requests.get(
-            f'https://openapi.tuyaus.com/v1.0/token?grant_type=1',
-            headers={
-                'sign_method': 'HMAC-SHA256',
-                'client_id': self.client_id,
-                't': tsp,
+        # switch_1: low, switch_2: mid, swithc_3: hight, switch_4: null
+        self.hvac = 'off'
+
+        self.desired_temp = 22
+        self.temp_range = 2
+
+        self.__tuya_rqst_token()
+        self.__tuya_rqst_instruction()
+        self.__tuya_rqst_device_information()
+
+    def __stringToSign(self, url, HTTPMethod):
+        headers = {'secret': self.h['secret']}
+        return (f'{HTTPMethod}\n' +                                                                 # HTTPMethod
+                hashlib.sha256(bytes((self.h['body'] or '').encode('utf-8'))).hexdigest() + '\n' +  # Content-SHA256
+                ''.join(['%s:%s\n'%(key, headers[key])                                              # Headers
+                        for key in headers.get("Signature-Headers", "").split(":")
+                        if key in headers]) + '\n' +
+                '/' + url.split('//', 1)[-1].split('/', 1)[-1]) 
+    
+    def headers_wrapper(self, func):
+        t = str(int(datetime.datetime.now().timestamp()*1000))
+        url = self.url[func]
+
+        if func == TOKEN:
+            message = (
+                self.h['client_id'] + t + self.__stringToSign(url, 'GET')
+            ).encode('utf-8') 
+        elif func == COMMAND:
+            message = (
+                self.h['client_id'] + self.token['result']['access_token'] + t + self.__stringToSign(url, 'POST')
+            ).encode('utf-8') 
+        else:
+            message = (
+                self.h['client_id'] + self.token['result']['access_token'] + t + self.__stringToSign(url, 'GET')
+            ).encode('utf-8') 
+
+        secret = self.h['secret'].encode('utf-8') 
+        signature = hmac.new(secret, message, hashlib.sha256).hexdigest().upper()
+
+        if func == TOKEN:
+            headers = {
+                'secret': self.h['secret'],
+                'client_id': self.h['client_id'],
+                'sign': signature,
+                't': t,
                 'sign_method': 'HMAC-SHA256'
             }
-        )
-        print(rqst.text)
-        
-
-    def __rqst_tuya_properties(self):
-        tsp = int(datetime.datetime.now().timestamp)
-        rqst = requests.get(
-            f'https://openapi.tuyaus.com/v1.0/iot-03/devices/{self.device_id}/specification',
-            headers={
+        else:
+            headers = {
+                'secret': self.h['secret'],
+                'client_id': self.h['client_id'],
+                'sign': signature,
+                't': t,
                 'sign_method': 'HMAC-SHA256',
-                'client_id': self.client_id,
-                't': tsp,
-                'mode': 'cors',
                 'Content-Type': 'application/json',
-
+                'mode': 'cors',
+                'access_token': self.token['result']['access_token']
             }
-        )
 
-    def set(self, lvl):
-        if lvl == 1:
-            pass
-        elif lvl == 2:
-            pass
-        elif lvl == 3:
-            pass
+        return headers
+
+    def __tuya_rqst_token(self):
+        headers = self.headers_wrapper(TOKEN)
+        rqst = requests.get( self.url[TOKEN], headers=headers )
+        try:
+            rsp_dict = json.loads(rqst.content.decode())
+        except:
+            print('Failed to request token')
+        self.token = rsp_dict
+        # print(self.token)
+        self.token_expire_time = int(rsp_dict['t'])+int(self.token['result']['expire_time'])*1000
+
+    def check_token(self):
+        if int(str(int(datetime.datetime.now().timestamp()*1000))) >= self.token_expire_time:
+            self.__tuya_rqst_token()
+
+    def __tuya_rqst_instruction(self):
+        self.check_token()
+        headers = self.headers_wrapper(INSTRUCTION)
+        rqst = requests.get( self.url[INSTRUCTION], headers=headers )
+        try:
+            rsp_dict = json.loads(rqst.content.decode())
+        except:
+            print('Failed to request instruction')
+        self.inst = rsp_dict['result']['functions']
+
+
+    def __tuya_rqst_device_information(self):
+        self.check_token()
+        headers = self.headers_wrapper(INFORMATION)
+        rqst = requests.get( self.url[INFORMATION], headers=headers )
+        try:
+            rsp_dict = json.loads(rqst.content.decode())
+        except:
+            print('Failed to request information')
+        self.info = rsp_dict['result']
+
+
+    def __tuya_rqst_status(self):
+        self.check_token()
+        headers = self.headers_wrapper(STATUS)
+        rqst = requests.get( self.url[STATUS], headers=headers )
+        try:
+            rsp_dict = json.loads(rqst.content.decode())
+        except:
+            print('Failed to request information')
+        # self.status = rsp_dict['result']
+        return rsp_dict['result']
+
+    def hvac_get_state(self):
+        switches = self.__tuya_rqst_status()
+        
+        for switch in switches:
+            if switch['code'] == "switch_1" and switch['value']:
+                self.hvac = 'low'
+            elif switch['code'] == "switch_2" and switch['value']:
+                self.hvac = 'middle'
+            elif switch['code'] == "switch_3" and switch['value']:
+                self.hvac = 'high'
+        return self.hvac
+
+    def __tuya_send_commnand(self, switch_cmd):
+        self.check_token()
+        self.h['body'] = self.__cmd2dict(switch_cmd)
+        headers = self.headers_wrapper(COMMAND)
+
+        rqst = requests.post( self.url[COMMAND], headers=headers, data=self.__cmd2dict(switch_cmd) )
+        try:
+            rsp_dict = json.loads(rqst.content.decode())
+        except:
+            print('Failed to request information')
+        # self.status = rsp_dict['result']
+        print(rsp_dict)
+        # set body be empty: for future GET requests
+        self.h['body'] = ''
+        return rsp_dict['result']
+
+    def __cmd2dict(self, switch_cmd):
+        data = {'commands': []}
+        for switch in switch_cmd:
+            data['commands'].append(
+                {'code': switch, 'value': switch_cmd[switch]}
+            )
+        return json.dumps(data)
+
+    def hvac_set_state(self, cmd):
+        switch_cmd = {
+            'switch_1': False,
+            'switch_2': False,
+            'switch_3': False,
+            'switch_4': False,
+        }
+        self.hvac = cmd
+
+        # for safety, turn off all switches first and deley for 0.5s
+        self.__tuya_send_commnand(switch_cmd)
+        time.sleep(0.5)
+
+        if cmd == 'low':
+            switch_cmd[LOW] = True
+        elif cmd == 'middle':
+            switch_cmd[MIDDLE] = True
+        elif cmd == 'high':
+            switch_cmd[HIGH] = True
         else:
             pass
+        self.__tuya_send_commnand(switch_cmd)
 
+    def get_status(self):
+        if self.hvac == 'low': return 1
+        elif self.hvac == 'middle': return 2
+        elif self.hvac == 'high': return 3
+        elif self.hvac == 'off': return 0
+        else: return -1
 
-h = hvac()
+    def run(self, home_data, atmos_data):
+        temp = home_data['temp']
+        humi = home_data['humi']
+        pres = home_data['pres']
+
+        h_temp = atmos_data['temp']
+
+        # simple rule-based
+        # only work when humidity is higher than 40% 
+        # and atmos/home temperatures difference is larger than 2C
+        if humi >= 40 and abs(self.desired_temp-h_temp) > 2:        
+            # temperature range desired_temp +- n*range
+            if temp < self.desired_temp - 3*self.temp_range \
+                and temp > self.desired_temp + 3*self.temp_range:
+                self.hvac_set_state('high')
+            elif temp < self.desired_temp - 2*self.temp_range \
+                and temp > self.desired_temp + 2*self.temp_range:
+                self.hvac_set_state('middle')
+            elif temp < self.desired_temp - self.temp_range \
+                and temp > self.desired_temp + self.temp_range:
+                self.hvac_set_state('low')
+            else:
+                self.hvac_set_state('off')

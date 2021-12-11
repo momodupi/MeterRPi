@@ -61,9 +61,8 @@ class uart_sensor(object):
             time.sleep(3)
 
     def get_data(self):
-        if self.q.qsize != 0:
+        if self.q.qsize() != 0:
             data_set = [self.q.get() for _ in range(self.q.qsize())]
-            print(data_set)
             temp, humi, pres = self.__decode_uart_data(data_set)
             return temp, humi, pres
         else:

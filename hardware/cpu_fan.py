@@ -1,8 +1,7 @@
 # from PID import PID
-import ctypes
 from algorithms.Q_learning import Agent
 
-# import RPi.GPIO as GPIO
+import ctypes
 import os
 import requests
 
