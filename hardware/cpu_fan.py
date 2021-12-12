@@ -68,7 +68,7 @@ class cpu_fan(object):
 
     def control(self, state, action):
         self.agent.learning(state, action)
-        return self.agent.greed(state)
+        return self.agent.greedy(state)
 
     def set_fan_speed(self, pwm):
         dll_path = os.path.dirname(os.path.abspath(__file__))

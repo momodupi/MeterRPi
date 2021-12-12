@@ -1,4 +1,4 @@
-import numpy as np
+# import numpy as np
 import pickle
 from os import path
 
@@ -18,7 +18,8 @@ class Agent(object):
             with open('algorithms/Q.pickle', 'rb') as pk:
                 self.Q = pickle.load(pk) 
         else:
-            self.Q = np.zeros((self.TEMP_SIZE,self.CPU_SIZE,len(self.PWM_SET)))
+            # self.Q = np.zeros((self.TEMP_SIZE,self.CPU_SIZE,len(self.PWM_SET)))
+            self.Q = [[([0]*len(self.PWM_SET)) for i in range(self.CPU_SIZE)] for j in range(self.TEMP_SIZE)]
 
         self.post_state = [0.,0.,0.]
         self.post_i = [0,0,0]
@@ -52,17 +53,22 @@ class Agent(object):
         temp_i, cpu_i = self.state_index(state)
         pwm_i = self.action_index(action)
         
-        self.Q[ self.post_i[0], self.post_i[1], self.post_i[2] ] = \
+        self.Q[self.post_i[0]][self.post_i[1]][self.post_i[2]] = \
             self.post_q + self.beta * ( self.cost(temp_i, pwm_i) + \
-            self.alpha * self.Q[temp_i, cpu_i].min() - self.post_q )
+            self.alpha * min(self.Q[temp_i][cpu_i]) - self.post_q )
 
     def save_q(self):
         with open('algorithms/Q.pickle', 'wb') as pk:
             pickle.dump(self.Q, pk, protocol=pickle.HIGHEST_PROTOCOL) 
+
+    def argmin(self, array):
+        array = list( array )
+        return array.index(min(array))
         
-    def greed(self, state):
+    def greedy(self, state):
         temp_i, cpu_i = self.state_index(state)
-        pwm_i = np.argmin(self.Q[temp_i, cpu_i])
-        self.post_q = self.Q[temp_i, cpu_i, pwm_i]
+        # pwm_i = np.argmin(self.Q[temp_i, cpu_i])
+        pwm_i = self.argmin( self.Q[temp_i][cpu_i] )
+        self.post_q = self.Q[temp_i][cpu_i][pwm_i]
         self.post_i = [temp_i, cpu_i, pwm_i]
         return self.PWM_SET[pwm_i]

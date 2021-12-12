@@ -1,8 +1,8 @@
 from hardware.cpu_fan import cpu_fan
 from hardware.hvac import hvac
 from hardware.uart import uart_sensor
-from servers.prometheus_server import prometheus_server
-from servers.homeassistant_server import homeassistant_server
+from service.prometheus_service import prometheus_service
+from service.homeassistant_service import homeassistant_service
 
 import time
 from datetime import datetime
@@ -18,9 +18,9 @@ if __name__ == '__main__':
     fan = cpu_fan()
     uart = uart_sensor()
     ac = hvac()
-    hass = homeassistant_server()
+    hass = homeassistant_service()
 
-    # create server
+    # create service
     FAN_PWM = {'key':'PYTHON_FAN_CONTROL', 'desc': 'Gauge of cooling fan: GPIO 18 PWM'}
     HVAC_STATUS = {'key':'PYTHON_HVAN_CONTROL', 'desc': 'Status of HVAC relays'}
     UART_TEMP = {'key':'PYTHON_UART_TEMP', 'desc': 'Gauge of Temperature'}
@@ -38,7 +38,7 @@ if __name__ == '__main__':
         'h_temp': HASS_TEMP,
         'h_humi': HASS_HUMI
     }
-    ps = prometheus_server(6432, metrics)
+    ps = prometheus_service(6432, metrics)
     ps_data = {
         'fan': 0, 'hvac': 0, 
         'uart': {'temp':0, 'humi':0, 'pres': 0},

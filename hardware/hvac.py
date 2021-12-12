@@ -1,5 +1,5 @@
-from servers.tuya_server import tuya_server
-from servers.pulsar_server import pulsar_server
+from service.tuya_service import tuya_service
+from service.pulsar_service import pulsar_service
 import time
 
 
@@ -33,10 +33,10 @@ class hvac(object):
             'switch_4': False
         }
 
-        self.ts = tuya_server()
+        self.ts = tuya_service()
         self.hvac = self.get_state()
-        # get message from pulsar server
-        self.ps = pulsar_server()
+        # get message from pulsar service
+        self.ps = pulsar_service()
         self.ps.start()
 
         self.desired_temp = 22

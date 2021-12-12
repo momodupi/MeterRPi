@@ -1,0 +1,6 @@
+# Adafruit_IO==2.6.0
+prometheus_client==0.11.0
+pycryptodome==3.12.0
+pyserial==3.5
+requests==2.21.0
+websocket_client==1.2.3

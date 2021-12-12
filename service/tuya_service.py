@@ -13,7 +13,7 @@ STATUS = 3
 COMMAND = 4
 
 
-class tuya_server(object):
+class tuya_service(object):
     def __init__(self) -> None:
         super().__init__()
 

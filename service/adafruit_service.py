@@ -1,7 +1,7 @@
 import sys
 from Adafruit_IO import MQTTClient
 
-class adafruit_server(object):
+class adafruit_service(object):
     def __init__(self) -> None:
         super().__init__()
 

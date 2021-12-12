@@ -8,9 +8,10 @@ if __name__ == "__main__":
     pwm_duty = int(sys.argv[1])
 
     # init gpio
-    dll_path = os.path.dirname(os.path.abspath(__file__))
+    # dll_path = os.path.dirname(os.path.abspath(__file__))
     # print(f'{dll_path}{os.path.sep}pwm.so')
-    gpio_pwm = ctypes.CDLL(f'{dll_path}{os.path.sep}pwm.so')
+    # gpio_pwm = ctypes.CDLL(f'{dll_path}{os.path.sep}pwm.so')
+    gpio_pwm = ctypes.CDLL('pwm.so')
     gpio_pwm.gpio_init.argtypes = (ctypes.c_int,)
     gpio_pwm.gpio_set_pwm.argtypes = (ctypes.c_int, ctypes.c_int)
     gpio_pwm.gpio_init( ctypes.c_int(FAN_GPIO) )

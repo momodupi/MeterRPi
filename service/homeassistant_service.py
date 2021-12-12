@@ -2,7 +2,7 @@ import requests
 import os
 import json
 
-class homeassistant_server(object):
+class homeassistant_service(object):
     def __init__(self) -> None:
         super().__init__()
 

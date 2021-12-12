@@ -33,7 +33,7 @@ RECONNECT_MAX_TIMES = 1000
 
 
 
-class pulsar_server(object):
+class pulsar_service(object):
     def __init__(self) -> None:
         super().__init__()
 

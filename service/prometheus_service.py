@@ -1,7 +1,7 @@
 from prometheus_client import start_http_server
 from prometheus_client import Gauge
 
-class prometheus_server(object):
+class prometheus_service(object):
     def __init__(self, port, metrics) -> None:
         super().__init__()
 
