@@ -7,6 +7,8 @@ from servers.homeassistant_server import homeassistant_server
 import time
 from datetime import datetime
 
+from collections import deque
+
 FAN_CTRL_PERIOD = 10
 UART_PERIOD = 5
 
@@ -73,9 +75,15 @@ if __name__ == '__main__':
         if time_cnt % 5 == 0:
             ps_data['uart']['temp'], ps_data['uart']['humi'], ps_data['uart']['pres'] = \
                 uart.get_data()
-            ps_data['hvac'] = ac.get_status()
+
+            ac.ps.check_status()
+            ps_data['hvac'] = ac.get_state_message()
+            print(ps_data['hvac'])
+            
             print(ps_data)
             ps.receive(ps_data)
+
+            
 
         
         

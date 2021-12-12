@@ -129,5 +129,5 @@ dmypy.json
 .pyre/
 
 # token
-hardware/tuya_token.json
+servers/tuya_token.json
 servers/hass_token.json

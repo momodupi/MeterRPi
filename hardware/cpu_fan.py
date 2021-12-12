@@ -1,8 +1,8 @@
 # from PID import PID
 from algorithms.Q_learning import Agent
 
-import ctypes
 import os
+import subprocess
 import requests
 
 # PI = 'http://192.168.1.8'
@@ -17,40 +17,16 @@ class cpu_fan(object):
     def __init__(self) -> None:
         super().__init__()
 
-        # init gpio
-        dll_path = os.path.dirname(__file__)
-        self.pwm = ctypes.CDLL(f'{dll_path}{os.path.sep}pwm.so')
-        self.pwm.gpio_init.argtypes = (ctypes.c_int,)
-        self.pwm.gpio_set_pwm.argtypes = (ctypes.c_int, ctypes.c_int)
-        self.pwm.gpio_init( ctypes.c_int(FAN_GPIO) )
-
         # init ip addr
         self.ip_addr = PI
-
         self.duty = 0
 
         # setup Q-learning
         self.agent = Agent(0.75, 0.1)
 
-        # self.pid = PID(kp=10., ki=0.1, kd=0, bounds=[0, 100])
-
-        # GPIO.setwarnings(False)
-        # GPIO.cleanup()
-
-        # GPIO.setmode(GPIO.BCM)
-        # GPIO.setup(18, GPIO.OUT)
-
-        # # GPIO.output(18, GPIO.HIGH)
-        # self.pwm = GPIO.PWM(18, 10000)
-        # self.pwm.start(0)
-        
+        # self.pid = PID(kp=10., ki=0.1, kd=0, bounds=[0, 100])        
 
     def get_cpu_temp(self):
-        # response = requests.get(
-        #   self.ip_addr + ':9100/metrics'
-        # )
-        # print(response.)
-        # return 0
         response = requests.get(
             self.ip_addr + PROMETHEUS_QUERY,
             params={'query': 'node_thermal_zone_temp{type="cpu-thermal",zone="0"}'}
@@ -93,6 +69,10 @@ class cpu_fan(object):
     def control(self, state, action):
         self.agent.learning(state, action)
         return self.agent.greed(state)
+
+    def set_fan_speed(self, pwm):
+        dll_path = os.path.dirname(os.path.abspath(__file__))
+        subprocess.call(['sudo', 'python3', f'{dll_path}{os.path.sep}pwm.py', f'{pwm}'])
     
     def run(self):
         # get state and action pair
@@ -102,6 +82,6 @@ class cpu_fan(object):
 
         # self.duty = 100
         # set pwm with wiringPi
-        self.pwm.gpio_set_pwm( ctypes.c_int(FAN_GPIO), ctypes.c_int(self.duty) )
+        self.set_fan_speed(self.duty)
 
         return self.duty

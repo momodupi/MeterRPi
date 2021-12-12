@@ -14,8 +14,8 @@ class Agent(object):
         self.PWM_SET = [0, 50, 60, 70, 80, 90, 100]
         # self.PWM_STEP = 10
 
-        if path.exists('Q.pickle'):
-            with open('Q.pickle', 'rb') as pk:
+        if path.exists('algorithms/Q.pickle'):
+            with open('algorithms/Q.pickle', 'rb') as pk:
                 self.Q = pickle.load(pk) 
         else:
             self.Q = np.zeros((self.TEMP_SIZE,self.CPU_SIZE,len(self.PWM_SET)))
@@ -57,7 +57,7 @@ class Agent(object):
             self.alpha * self.Q[temp_i, cpu_i].min() - self.post_q )
 
     def save_q(self):
-        with open('Q.pickle', 'wb') as pk:
+        with open('algorithms/Q.pickle', 'wb') as pk:
             pickle.dump(self.Q, pk, protocol=pickle.HIGHEST_PROTOCOL) 
         
     def greed(self, state):
