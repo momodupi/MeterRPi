@@ -3,10 +3,12 @@ import hashlib
 import ssl
 import websocket
 import json
-import time
+import base64
 import os
 import queue
 import threading
+
+from Crypto.Cipher import AES
 # try:
 #     import thread
 # except ImportError:
@@ -24,7 +26,7 @@ WEB_SOCKET_QUERY_PARAMS = "?ackTimeoutMillis=3000&subscriptionType=Failover"
 SSL_OPT = {"cert_reqs": ssl.CERT_NONE}
 
 CONNECT_TIMEOUT_SECONDS = 3
-CHECK_INTERVAL_SECONDS = 3
+# CHECK_INTERVAL_SECONDS = 3
 
 PING_INTERVAL_SECONDS = 30
 PING_TIMEOUT_SECONDS = 3
@@ -70,21 +72,24 @@ class pulsar_service(object):
     # handler message
     def message_handler(self, payload):
         dataMap = json.loads(payload)
-        # print(dataMap)
-
         decryptContentDataStr = dataMap['data']
-        data = self.decrypt_by_aes(decryptContentDataStr, self.ACCESS_KEY)
-        print(f'\ndecryptContentData={data}')
-        
+        # print(self.decrypt_by_aes(decryptContentDataStr, self.ACCESS_KEY))
+        # print("\ndecryptContentData={}".format())
+        decryptContentData = self.decrypt_by_aes(decryptContentDataStr, self.ACCESS_KEY)
+        print(decryptContentData[170:173])
+        print(len(decryptContentData))
+        data_json = json.loads(decryptContentData)
+        print(data_json)
         if 'protocol' in dataMap:
+            print(dataMap['protocol'])
             if dataMap['protocol'] == 4:
-                self.q.put(json.loads(data))    
+                self.q.put(data_json)    
+            else:
+                print('protocol wrong')
 
 
     # decrypt
     def decrypt_by_aes(self, raw, key):
-        import base64
-        from Crypto.Cipher import AES
         raw = base64.b64decode(raw)
         key = key[8:24]
         cipher = AES.new(key, AES.MODE_ECB)
@@ -124,11 +129,11 @@ class pulsar_service(object):
         payload = self.base64_decode_as_string(message_json['payload'])
         print(f'---\nreceived message origin payload: {payload}')
         # handler payload
-        self.message_handler(payload)
         try:
             self.message_handler(payload)
         except Exception as e:
             print(f'handler message, a business exception has occurred,e:{e}')
+        self.send_ack(message_json["messageId"])
 
 
     def on_close(self, obj):

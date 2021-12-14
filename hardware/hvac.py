@@ -56,7 +56,7 @@ class hvac(object):
         return self.hvac
 
     def __decode_pulsar_data(self, data_set):
-        
+        print(data_set)
         for data in data_set:
             print('data: ', data)
             print('status: ', data['status'])
@@ -75,6 +75,7 @@ class hvac(object):
         return self.hvac
 
     def get_state_message(self):
+        print('ql:',self.ps.q.qsize())
         if self.ps.q.qsize() != 0:
             data_set = [self.ps.q.get() for _ in range(self.ps.q.qsize())]            
             print(f'HVAC status: {self.__decode_pulsar_data(data_set)}')

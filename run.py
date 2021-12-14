@@ -76,6 +76,7 @@ if __name__ == '__main__':
             ps_data['uart']['temp'], ps_data['uart']['humi'], ps_data['uart']['pres'] = \
                 uart.get_data()
 
+            ac.set_state('low')
             ac.ps.check_status()
             ps_data['hvac'] = ac.get_state_message()
             print(ps_data['hvac'])

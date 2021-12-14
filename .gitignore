@@ -129,5 +129,7 @@ dmypy.json
 .pyre/
 
 # token
-servers/tuya_token.json
-servers/hass_token.json
+service/*_token.json
+
+# pickle
+algorithms/*.pickle
