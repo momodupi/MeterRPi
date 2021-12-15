@@ -73,20 +73,18 @@ class pulsar_service(object):
     def message_handler(self, payload):
         dataMap = json.loads(payload)
         decryptContentDataStr = dataMap['data']
-        # print(self.decrypt_by_aes(decryptContentDataStr, self.ACCESS_KEY))
         # print("\ndecryptContentData={}".format())
         decryptContentData = self.decrypt_by_aes(decryptContentDataStr, self.ACCESS_KEY)
-        print(decryptContentData[170:173])
-        print(len(decryptContentData))
         data_json = json.loads(decryptContentData)
-        print(data_json)
+        
         if 'protocol' in dataMap:
-            print(dataMap['protocol'])
             if dataMap['protocol'] == 4:
                 self.q.put(data_json)    
-            else:
-                print('protocol wrong')
+            # else:
+            #     print('protocol wrong')
 
+    def AES_unpad(self, s):
+        return s[0:-ord(s[-1])]
 
     # decrypt
     def decrypt_by_aes(self, raw, key):
@@ -98,7 +96,10 @@ class pulsar_service(object):
         res_str = eval(repr(res_str).replace('\\r', ''))
         res_str = eval(repr(res_str).replace('\\n', ''))
         res_str = eval(repr(res_str).replace('\\f', ''))
-        return res_str
+        
+        # extra char
+        # res_str = eval(repr(res_str).replace('\b', ''))
+        return self.AES_unpad(res_str)
 
 
     def md5_hex(self, md5_str):
@@ -114,11 +115,11 @@ class pulsar_service(object):
 
 
     def on_error(self, ws, error):
-        print("on error is: %s" % error)
+        print(f'pulsar error: {error}')
 
 
     def reconnect(self):
-        print(f'ws-client connect status is not ok.\ntrying to reconnect for the {self.reconnect_count} time')
+        print(f'pulsar info: ws-client connect status is not ok.\ntrying to reconnect for the {self.reconnect_count} time')
         self.reconnect_count += 1
         if self.reconnect_count < RECONNECT_MAX_TIMES:
             threading.Thread(target=self.connect, daemon=True).start()
@@ -127,23 +128,23 @@ class pulsar_service(object):
     def on_message(self, ws, message):
         message_json = json.loads(message)
         payload = self.base64_decode_as_string(message_json['payload'])
-        print(f'---\nreceived message origin payload: {payload}')
+        print(f'pulsar info: received message origin payload: {payload}')
         # handler payload
         try:
             self.message_handler(payload)
         except Exception as e:
-            print(f'handler message, a business exception has occurred,e:{e}')
+            print(f'pulsar error: handler message, a business exception has occurred: {e}')
         self.send_ack(message_json["messageId"])
 
 
     def on_close(self, obj):
-        print('Connection closed!')
+        print('pulsar info: Connection closed!')
         obj.close()
         self.connect_status = 0
 
 
     def connect(self):
-        print('---\nws-client connecting...')
+        print('pulsar info: ws-client connecting...')
         self.ws.run_forever(sslopt=SSL_OPT, ping_interval=PING_INTERVAL_SECONDS, ping_timeout=PING_TIMEOUT_SECONDS)
 
 
@@ -162,7 +163,7 @@ class pulsar_service(object):
     def check_status(self):
         try:
             if self.ws.sock.status == 101:
-                print('ws-client connect status is ok.')
+                print('pulsar info: ws-client connect status is ok.')
                 self.reconnect_count = 1
                 self.connect_status = 1
         except Exception:

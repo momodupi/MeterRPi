@@ -40,6 +40,7 @@ class uart_sensor(object):
             
     def uart_sync(self):
         subprocess.call(['sudo', 'stty', '-F', '/dev/ttyACM0', f'{self.bps}', 'cs8', '-cstopb', '-parenb'])
+        print('uart info: synchronized')
 
     def start_receive(self):
         threading.Thread(target=self.__receive_data, daemon=True).start()
@@ -52,11 +53,15 @@ class uart_sensor(object):
         time.sleep(3)
         while self.rec_flag:
             rd_line = self.ser.readline()
-            if rd_line == None:
+
+            try:
+                data_str = str(rd_line).split('\"')[1].replace(r'\r', '').replace(r'\n', '')
+                # print(data_str)
+                data = json.loads(data_str.replace("'", '"'))
+            except Exception as e:
+                print(f'uart error: {e}')
                 self.uart_sync()
                 continue
-            data_str = str(rd_line).split('\"')[1].replace(r'\r', '').replace(r'\n', '')
-            data = json.loads(data_str.replace("'", '"'))
             self.q.put(data)
             time.sleep(3)
 

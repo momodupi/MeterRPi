@@ -22,9 +22,7 @@ class cpu_fan(object):
         self.duty = 0
 
         # setup Q-learning
-        self.agent = Agent(0.75, 0.1)
-
-        # self.pid = PID(kp=10., ki=0.1, kd=0, bounds=[0, 100])        
+        self.agent = Agent(0.75, 0.1)    
 
     def get_cpu_temp(self):
         response = requests.get(
@@ -58,7 +56,6 @@ class cpu_fan(object):
         target_temp = TEMP_TARGET
         temp = state[1]
         duty = state[0]
-        # print(temp)
 
         if temp < TEMP_THRESHOLD:
             return 0
@@ -73,6 +70,7 @@ class cpu_fan(object):
     def set_fan_speed(self, pwm):
         dll_path = os.path.dirname(os.path.abspath(__file__))
         subprocess.call(['sudo', 'python3', f'{dll_path}{os.path.sep}pwm.py', f'{pwm}'])
+        print(f'pwm info: duty set to {pwm}')
     
     def run(self):
         # get state and action pair
@@ -80,7 +78,6 @@ class cpu_fan(object):
         action = self.duty
         self.duty = self.control(state, action)
 
-        # self.duty = 100
         # set pwm with wiringPi
         self.set_fan_speed(self.duty)
 

@@ -11,13 +11,13 @@ COMMAND = 4
 
 OFF = None
 LOW = 'switch_1'
-MIDDLE = 'switch_2'
+NORMAL = 'switch_2'
 HIGH = 'switch_3'
 
 HVAC_PROMETHEUS = {
     'off': 0,
     'low': 1,
-    'middle': 2,
+    'normal': 2,
     'high': 3
 }
 
@@ -50,18 +50,13 @@ class hvac(object):
             if switch['code'] == "switch_1" and switch['value']:
                 self.hvac = 'low'
             elif switch['code'] == "switch_2" and switch['value']:
-                self.hvac = 'middle'
+                self.hvac = 'normal'
             elif switch['code'] == "switch_3" and switch['value']:
                 self.hvac = 'high'
         return self.hvac
 
     def __decode_pulsar_data(self, data_set):
-        print(data_set)
-        for data in data_set:
-            print('data: ', data)
-            print('status: ', data['status'])
-            print('status 0: ', data['status'][0])
-            
+        for data in data_set:            
             self.switches[data['status'][0]['code']] = data['status'][0]['value']
 
         self.hvac = 'off'
@@ -69,16 +64,15 @@ class hvac(object):
             if switch == "switch_1" and self.switches[switch]:
                 self.hvac = 'low'
             elif switch == "switch_2" and self.switches[switch]:
-                self.hvac = 'middle'
+                self.hvac = 'normal'
             elif switch == "switch_3" and self.switches[switch]:
                 self.hvac = 'high'
         return self.hvac
 
     def get_state_message(self):
-        print('ql:',self.ps.q.qsize())
         if self.ps.q.qsize() != 0:
             data_set = [self.ps.q.get() for _ in range(self.ps.q.qsize())]            
-            print(f'HVAC status: {self.__decode_pulsar_data(data_set)}')
+            print(f'hvac info: new msg: {self.__decode_pulsar_data(data_set)}')
         
         return HVAC_PROMETHEUS[self.hvac]
     
@@ -98,8 +92,8 @@ class hvac(object):
 
         if cmd == 'low':
             switch_cmd[LOW] = True
-        elif cmd == 'middle':
-            switch_cmd[MIDDLE] = True
+        elif cmd == 'normal':
+            switch_cmd[NORMAL] = True
         elif cmd == 'high':
             switch_cmd[HIGH] = True
         else:
@@ -108,7 +102,7 @@ class hvac(object):
 
     def get_command(self):
         if self.hvac == 'low': return 1
-        elif self.hvac == 'middle': return 2
+        elif self.hvac == 'normal': return 2
         elif self.hvac == 'high': return 3
         elif self.hvac == 'off': return 0
         else: return -1
@@ -130,7 +124,7 @@ class hvac(object):
                 self.set_state('high')
             elif temp < self.desired_temp - 2*self.temp_range \
                 and temp > self.desired_temp + 2*self.temp_range:
-                self.set_state('middle')
+                self.set_state('normal')
             elif temp < self.desired_temp - self.temp_range \
                 and temp > self.desired_temp + self.temp_range:
                 self.set_state('low')
