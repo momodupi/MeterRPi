@@ -16,8 +16,9 @@ class homeassistant_service(object):
         }
 
         self.urls = {
-            'atmos_temp': 'sensor.openweathermap_feels_like_temperature',
-            'atmos_humi': 'sensor.openweathermap_humidity'
+            # 'atmos_temp': 'sensor.openweathermap_feels_like_temperature',
+            # 'atmos_humi': 'sensor.openweathermap_humidity'
+            'weather_home': 'weather.home'
         }
 
     def __read_state_data(self, state_class):
@@ -26,11 +27,11 @@ class homeassistant_service(object):
         return rqst.json()
 
     def get_atmos_temp(self):
-        data = self.__read_state_data(self.urls['atmos_temp'])
+        data = self.__read_state_data(self.urls['weather_home'])
         # self.atmos_temp = int(float(data['state']))
-        return int(float(data['state']))
+        return int(float(data['attributes']['temperature']))
 
     def get_atmos_humi(self):
-        data = self.__read_state_data(self.urls['atmos_humi'])
-        return int(float(data['state']))
+        data = self.__read_state_data(self.urls['weather_home'])
+        return int(float(data['attributes']['humidity']))
 

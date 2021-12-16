@@ -18,7 +18,7 @@ if __name__ == '__main__':
     hass = homeassistant_service()
 
     # create service
-    HVAC_STATUS = {'key':'PYTHON_HVAN_CONTROL', 'desc': 'Status of HVAC relays'}
+    HVAC_STATUS = {'key':'PYTHON_HVAC_CONTROL', 'desc': 'Status of HVAC relays'}
     UART_TEMP = {'key':'PYTHON_UART_TEMP', 'desc': 'Gauge of Temperature'}
     UART_HUMI = {'key':'PYTHON_UART_HUMI', 'desc': 'Gauge of Humidity'}
     UART_PRES = {'key':'PYTHON_UART_PRES', 'desc': 'Gauge of Pressure'}
@@ -57,10 +57,6 @@ if __name__ == '__main__':
 
             ps_data['hass']['temp'] = hass.get_atmos_temp()
             ps_data['hass']['humi'] = hass.get_atmos_humi()
-
-            # # save Q every 10 min
-            # if datetime.now().minute % 10 == 0 and datetime.now().second < 10:
-            #     fan.agent.save_q()
 
             # control hvac every 20 min
             if datetime.now().minute % 20 == 0 and datetime.now().second < 10:

@@ -34,10 +34,11 @@ class hvac(object):
         }
 
         self.ts = tuya_service()
-        self.hvac = self.get_state()
         # get message from pulsar service
         self.ps = pulsar_service()
         self.ps.start()
+
+        self.get_state()
 
         self.desired_temp = 22
         self.temp_range = 2
