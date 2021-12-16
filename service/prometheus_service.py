@@ -5,9 +5,6 @@ class prometheus_service(object):
     def __init__(self, port, metrics) -> None:
         super().__init__()
 
-        self.g_fan = Gauge(metrics['fan']['key'], metrics['fan']['desc'])
-        self.g_fan.set_function( lambda: self.__get_fan_pwm() )
-
         self.g_hvac = Gauge(metrics['hvac']['key'], metrics['hvac']['desc'])
         self.g_hvac.set_function( lambda: self.__get_hvac_status() )
 
@@ -27,7 +24,6 @@ class prometheus_service(object):
         self.g_h_humi.set_function( lambda: self.__get_hass_humi() )
 
         start_http_server(port)
-        self.pwm = 0
         self.hvac = 0
         self.temp = 0
         self.humi = 0
@@ -38,7 +34,6 @@ class prometheus_service(object):
 
 
     def receive(self, data):
-        self.pwm = data['fan']
         self.hvac = data['hvac']
         self.temp = data['uart']['temp']
         self.humi = data['uart']['humi']
@@ -46,9 +41,6 @@ class prometheus_service(object):
         self.h_temp = data['hass']['temp']
         self.h_humi = data['hass']['humi']
         
-    def __get_fan_pwm(self):
-        return self.pwm
-
     def __get_uart_temp(self):
         return self.temp
     

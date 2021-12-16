@@ -1,4 +1,3 @@
-from hardware.cpu_fan import cpu_fan
 from hardware.hvac import hvac
 from hardware.uart import uart_sensor
 from service.prometheus_service import prometheus_service
@@ -14,14 +13,11 @@ UART_PERIOD = 5
 
 
 if __name__ == '__main__':
-    # set Q-learning
-    fan = cpu_fan()
     uart = uart_sensor()
     ac = hvac()
     hass = homeassistant_service()
 
     # create service
-    FAN_PWM = {'key':'PYTHON_FAN_CONTROL', 'desc': 'Gauge of cooling fan: GPIO 18 PWM'}
     HVAC_STATUS = {'key':'PYTHON_HVAN_CONTROL', 'desc': 'Status of HVAC relays'}
     UART_TEMP = {'key':'PYTHON_UART_TEMP', 'desc': 'Gauge of Temperature'}
     UART_HUMI = {'key':'PYTHON_UART_HUMI', 'desc': 'Gauge of Humidity'}
@@ -30,7 +26,6 @@ if __name__ == '__main__':
     HASS_HUMI = {'key':'PYTHON_HASS_HUMI', 'desc': 'Gauge of Atmosphere Humidity'}
 
     metrics = {
-        'fan': FAN_PWM,
         'hvac': HVAC_STATUS,
         'u_tmpe': UART_TEMP,
         'u_humi': UART_HUMI,
@@ -57,16 +52,15 @@ if __name__ == '__main__':
             time_cnt = 0
 
         if time_cnt % 10 == 0:
-            # run Q-learning
-            pwm = fan.run()
-            ps_data['fan'] = pwm
+            # # run Q-learning
+            # pwm = fan.run()
 
             ps_data['hass']['temp'] = hass.get_atmos_temp()
             ps_data['hass']['humi'] = hass.get_atmos_humi()
 
-            # save Q every 10 min
-            if datetime.now().minute % 10 == 0 and datetime.now().second < 10:
-                fan.agent.save_q()
+            # # save Q every 10 min
+            # if datetime.now().minute % 10 == 0 and datetime.now().second < 10:
+            #     fan.agent.save_q()
 
             # control hvac every 20 min
             if datetime.now().minute % 20 == 0 and datetime.now().second < 10:
