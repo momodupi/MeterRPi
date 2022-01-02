@@ -166,6 +166,10 @@ class hvac(object):
             # and atmos/home temperatures difference is larger than 2C
             if humi >= 40 and abs(self.desired_temp-temp) > self.temp_range:
                 self.set_relay_status(True)
+            elif humi >= 30 and abs(self.desired_temp-temp) > self.temp_range*2:
+                self.set_relay_status(True)
+            elif humi >= 20 and abs(self.desired_temp-temp) > self.temp_range*3:
+                self.set_relay_status(True)
             else:
                 self.set_relay_status(False)
                 # # temperature range desired_temp +- n*range
