@@ -50,7 +50,7 @@ class uart_sensor(object):
 
     def __receive_data(self):
         self.uart_sync()
-        time.sleep(3)
+        # time.sleep(3)
         while self.rec_flag:
             rd_line = self.ser.readline()
 
