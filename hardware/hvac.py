@@ -40,7 +40,7 @@ class hvac(object):
         self.fan = False
         self.working = False
         self.desired_temp = self.hass.get_desired_temp()
-        self.temp_range = 2
+        self.temp_range = 1
         # self.atmos_temp = self.hass.get_atmos_temp()
         # self.atmos_humi = self.hass.get_atmos_humi()
         # self.sensor_temp = 0
@@ -151,12 +151,15 @@ class hvac(object):
         # h_temp = atmos_data['temp']
 
         if self.manual:
-            self.set_relay_status(True)
+            # 
+            self.working = True
         elif not self.auto:
-            self.set_relay_status(False)
-            
+            # self.set_relay_status(False)
+            self.working = False
 
-    def auto_run(self, home_data):
+        self.set_relay_status(self.working)            
+
+    def auto_mode(self, home_data):
         temp = home_data['temp']
         humi = home_data['humi']
 
@@ -165,13 +168,21 @@ class hvac(object):
             # only work when humidity is higher than 40% 
             # and atmos/home temperatures difference is larger than 2C
             if humi >= 40 and abs(self.desired_temp-temp) > self.temp_range:
-                self.set_relay_status(True)
+                print('hvac: temp lvl 1')
+                # self.set_relay_status(True)
+                self.working = True
             elif humi >= 30 and abs(self.desired_temp-temp) > self.temp_range*2:
-                self.set_relay_status(True)
+                print('hvac: temp lvl 2')
+                # self.set_relay_status(True)
+                self.working = True
             elif humi >= 20 and abs(self.desired_temp-temp) > self.temp_range*3:
-                self.set_relay_status(True)
+                print('hvac: temp lvl 3')
+                # self.set_relay_status(True)
+                self.working = True
             else:
-                self.set_relay_status(False)
+                print('hvac: temp lvl 0')
+                self.working = False
+                
                 # # temperature range desired_temp +- n*range
                 # if temp < self.desired_temp - 3*self.temp_range \
                 #     and temp > self.desired_temp + 3*self.temp_range:

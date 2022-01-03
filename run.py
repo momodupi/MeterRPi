@@ -75,15 +75,15 @@ if __name__ == '__main__':
             #     ac.set_state( hass.fan_cmd[ui_data['fan']] )
             #     ac.set_desired_temp(ui_data['temp'])
             
-        if time_cnt % 10 == 0:
+        if time_cnt % 10 == 1:
             # # run Q-learning
             # pwm = fan.run()
 
             # data['hass']['temp'] = hass.get_atmos_temp()
             # data['hass']['humi'] = hass.get_atmos_humi()
 
-            # control hvac every 15 min
-            if datetime.now().minute % 15 == 0 and datetime.now().second < 10:
-                ac.auto_run(data['sensor'])
+            # control hvac every 5 min
+            if datetime.now().minute % 5 == 0 and datetime.now().second < 10:
+                ac.auto_mode(data['sensor'])
             
             

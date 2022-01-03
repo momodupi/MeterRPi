@@ -5,7 +5,7 @@ import json
 BROKER = 'localhost'
 PORT = 1883
 TOPIC_SENSOR = "meterpi/sensor"
-TOPIC_RELAY = "esp32/relay"
+TOPIC_RELAY = "esp32/relay/cmd"
 TOPIC_LISTENER = "meterpi/#"
 
 
@@ -58,7 +58,7 @@ class mqtt_publisher(object):
         # result: [0, 1]
         status = result[0]
         if status != 0:
-            print(f'mqtt publisher: Failed to send message to topic {topic}')
+            print(f'mqtt publisher: Failed to send message to topic {topic}, status={result}')
 
 
 class mqtt_service(object):
