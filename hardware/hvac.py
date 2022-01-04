@@ -2,6 +2,7 @@
 # from service.pulsar_service import pulsar_service
 # import time
 from service.homeassistant_service import homeassistant_service
+from algorithms.hvac_rule import hvac_rule
 
 # TOKEN = 0
 # INSTRUCTION = 1
@@ -37,10 +38,22 @@ class hvac(object):
 
         # self.get_state()
         
-        self.fan = False
+        # self.fan = False
         self.working = False
         self.desired_temp = self.hass.get_desired_temp()
-        self.temp_range = 1
+
+        fan_init_mode = self.hass.get_fan_mode()
+        if fan_init_mode == 'fan_only':
+            self.auto = False
+            self.manual = True
+        elif fan_init_mode == 'auto':
+            self.auto = True
+            self.manual = False
+        else:
+            self.auto = False
+            self.manual = False
+
+        self.rule = hvac_rule()
         # self.atmos_temp = self.hass.get_atmos_temp()
         # self.atmos_humi = self.hass.get_atmos_humi()
         # self.sensor_temp = 0
@@ -131,70 +144,52 @@ class hvac(object):
         self.manual = self.hass.ui_data['manual']
         self.auto = self.hass.ui_data['auto']
 
-        self.atmos_temp = self.hass.get_atmos_temp()
-        self.atmos_humi = self.hass.get_atmos_humi()
+        self.atmos_data = {
+            'temp': self.hass.get_atmos_temp(),
+            'humi': self.hass.get_atmos_humi()
+        }
 
         # # if switch on
         # if not self.working:
         #     self.set_state('off')
         #     return
 
-        temp = home_data['temp']
-        humi = home_data['humi']
+        self.home_data = home_data
+        self.hass.set_home_sensor(self.home_data)
 
-        self.hass.set_home_sensor({'temp': temp, 'humi': humi})
-
-        print(f'atmos: temp: {self.atmos_temp}, humi: {self.atmos_humi}')
-        print(f'home: temp: {temp}, humi: {humi}')
+        print(f'atmos: {self.atmos_data}')
+        print(f'home: {self.home_data}')
         print(f'hass: temp:{self.desired_temp}, manual: {self.manual}, auto: {self.auto}')
 
         # h_temp = atmos_data['temp']
 
         if self.manual:
-            # 
             self.working = True
         elif not self.auto:
-            # self.set_relay_status(False)
             self.working = False
 
         self.set_relay_status(self.working)            
 
-    def auto_mode(self, home_data):
-        temp = home_data['temp']
-        humi = home_data['humi']
-
-        if self.auto:
-            # simple rule-based
-            # only work when humidity is higher than 40% 
-            # and atmos/home temperatures difference is larger than 2C
-            if humi >= 40 and abs(self.desired_temp-temp) > self.temp_range:
-                print('hvac: temp lvl 1')
-                # self.set_relay_status(True)
-                self.working = True
-            elif humi >= 30 and abs(self.desired_temp-temp) > self.temp_range*2:
-                print('hvac: temp lvl 2')
-                # self.set_relay_status(True)
-                self.working = True
-            elif humi >= 20 and abs(self.desired_temp-temp) > self.temp_range*3:
-                print('hvac: temp lvl 3')
-                # self.set_relay_status(True)
-                self.working = True
-            else:
-                print('hvac: temp lvl 0')
-                self.working = False
-                
-                # # temperature range desired_temp +- n*range
-                # if temp < self.desired_temp - 3*self.temp_range \
-                #     and temp > self.desired_temp + 3*self.temp_range:
-                #     self.set_state('high')
-                # elif temp < self.desired_temp - 2*self.temp_range \
-                #     and temp > self.desired_temp + 2*self.temp_range:
-                #     self.set_state('normal')
-                # elif temp < self.desired_temp - self.temp_range \
-                #     and temp > self.desired_temp + self.temp_range:
-                #     self.set_state('low')
-                # else:
-                #     self.set_state('off')
+    def auto_mode(self):
+        rule_data = {
+            'home': self.home_data,
+            'atmos': self.atmos_data,
+            'd_temp': self.desired_temp
+        }
+        self.working = self.rule.command(rule_data)
+        
+        # # temperature range desired_temp +- n*range
+        # if temp < self.desired_temp - 3*self.temp_range \
+        #     and temp > self.desired_temp + 3*self.temp_range:
+        #     self.set_state('high')
+        # elif temp < self.desired_temp - 2*self.temp_range \
+        #     and temp > self.desired_temp + 2*self.temp_range:
+        #     self.set_state('normal')
+        # elif temp < self.desired_temp - self.temp_range \
+        #     and temp > self.desired_temp + self.temp_range:
+        #     self.set_state('low')
+        # else:
+        #     self.set_state('off')
 
         
 

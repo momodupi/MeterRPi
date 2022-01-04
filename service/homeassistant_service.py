@@ -67,6 +67,7 @@ class homeassistant_service(object):
     def set_home_sensor(self, data):
         data['temp'] = round(data['temp'],1)
         data['humi'] = int(data['humi'])
+        data['pres'] = round(data['pres']/1000,3)
         self.mqtt.send('sensor', data)
 
     def get_ui_data(self):

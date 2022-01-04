@@ -82,8 +82,8 @@ if __name__ == '__main__':
             # data['hass']['temp'] = hass.get_atmos_temp()
             # data['hass']['humi'] = hass.get_atmos_humi()
 
-            # control hvac every 5 min
-            if datetime.now().minute % 5 == 0 and datetime.now().second < 10:
-                ac.auto_mode(data['sensor'])
+            # auto mode: control hvac every 5 min
+            if datetime.now().minute % 5 == 0 and datetime.now().second < 10 and ac.auto:
+                ac.auto_mode()
             
             
