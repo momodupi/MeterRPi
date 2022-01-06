@@ -75,7 +75,7 @@ if __name__ == '__main__':
             #     ac.set_state( hass.fan_cmd[ui_data['fan']] )
             #     ac.set_desired_temp(ui_data['temp'])
             
-        if time_cnt % 10 == 1:
+        if time_cnt % 10 == 0:
             # # run Q-learning
             # pwm = fan.run()
 

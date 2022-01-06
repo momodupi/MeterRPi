@@ -5,7 +5,7 @@ import json
 BROKER = 'localhost'
 PORT = 1883
 TOPIC_SENSOR = "meterpi/sensor"
-TOPIC_RELAY = "esp32/relay/cmd"
+TOPIC_HVAC = "esp32/hvac/cmd"
 TOPIC_LISTENER = "meterpi/#"
 
 
@@ -73,7 +73,7 @@ class mqtt_service(object):
         
         self.topic_list = {
             'sensor': TOPIC_SENSOR,
-            'relay': TOPIC_RELAY,
+            'relay': TOPIC_HVAC,
             'ui_temp': 'meterpi/hvac/temp',
             'ui_power': 'meterpi/hvac/power',
             'ui_fan': 'meterpi/hvac/fan',

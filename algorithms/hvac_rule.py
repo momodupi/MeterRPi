@@ -12,6 +12,19 @@ class hvac_rule(object):
         if data['atmos']['temp'] >= 16 and data['atmos']['temp'] <=26:
             return False
 
+        # winter or summer:
+        # winter: not higher than desired temp
+        # summer: not lower than desired temp
+        iswinter = data['d_temp'] > data['atmos']['temp']
+        if iswinter:
+            if data['home']['temp'] > data['d_temp']:
+                print('hvac: temp lvl 0')
+                return False
+        else:
+            if data['home']['temp'] < data['d_temp']:
+                print('hvac: temp lvl 0')
+                return False
+
         # difference of temp: at least 1
         atmos_diff = max(1, abs(data['d_temp'] - data['atmos']['temp']))
         # high temp_diff: small temp tolerance: weather is cold/hot!
