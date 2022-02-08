@@ -38,7 +38,7 @@ class hvac_rule(object):
             print('hvac: temp lvl 1')
             # self.set_relay_status(True)
             return True
-        elif desired_diff > self.temp_range*2:
+        elif desired_diff > temp_range*2:
             print('hvac: temp lvl 2')
             return True
         else:

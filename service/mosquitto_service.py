@@ -4,7 +4,7 @@ import json
 
 BROKER = 'localhost'
 PORT = 1883
-TOPIC_SENSOR = "meterpi/sensor"
+# TOPIC_SENSOR = "meterpi/sensor"
 TOPIC_HVAC = "esp32/hvac/cmd"
 TOPIC_LISTENER = "meterpi/#"
 
@@ -72,12 +72,18 @@ class mqtt_service(object):
         print('mqtt: init done')
         
         self.topic_list = {
-            'sensor': TOPIC_SENSOR,
+            'sensor_temp': 'meterpi/sensor/temp', 
+            'sensor_humi': 'meterpi/sensor/humi', 
+            # 'sensor_pres': 'meterpi/sensor/pres',
             'relay': TOPIC_HVAC,
             'ui_temp': 'meterpi/hvac/temp',
             'ui_power': 'meterpi/hvac/power',
             'ui_fan': 'meterpi/hvac/fan',
-            'cmd_fan': 'meterpi/hvac/fan/cmd'
+            'cmd_fan': 'meterpi/hvac/fan/cmd',
+            'esp_temp': 'esp32/display/temp', 
+            'esp_humi': 'esp32/display/humi', 
+            'esp_targ': 'esp32/display/targ',
+            'esp_stat': 'esp32/display/stat'
         }
 
     def sends(self, mode, msg):

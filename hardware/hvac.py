@@ -28,9 +28,8 @@ class hvac(object):
 
         # switch_1: low, switch_2: mid, swithc_3: hight, switch_4: null
         self.switch = False
-        self.hass = homeassistant_service()
         self.mqtt = mqtt
-
+        self.hass = homeassistant_service(self.mqtt)
         # self.ts = tuya_service()
         # get message from pulsar service
         # self.ps = pulsar_service()
@@ -137,8 +136,8 @@ class hvac(object):
     # def set_desired_temp(self, temp):
     #     self.desired_temp = temp
 
-    def update(self, home_data):
-        self.hass.get_ui_data()
+    def update(self):
+        self.hass.get_mqtt_data()
         self.desired_temp = self.hass.ui_data['temp']
         
         self.manual = self.hass.ui_data['manual']
@@ -153,9 +152,9 @@ class hvac(object):
         # if not self.working:
         #     self.set_state('off')
         #     return
-
-        self.home_data = home_data
-        self.hass.set_home_sensor(self.home_data)
+        self.hass.set_home_sensor()
+        self.home_data = self.hass.sensor_data
+        
 
         print(f'atmos: {self.atmos_data}')
         print(f'home: {self.home_data}')

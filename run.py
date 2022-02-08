@@ -1,6 +1,6 @@
 from hardware.hvac import hvac
 from service.mosquitto_service import mqtt_service
-from hardware.uart import uart_sensor
+# from hardware.uart import uart_sensor
 # from service.prometheus_service import prometheus_service
 # from service.homeassistant_service import homeassistant_service
 
@@ -14,7 +14,7 @@ from collections import deque
 
 
 if __name__ == '__main__':
-    uart = uart_sensor()
+    # uart = uart_sensor()
     mqtt = mqtt_service()
     ac = hvac(mqtt)
     # hass = homeassistant_service()
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     }
 
     # get uart data
-    uart.start_receive()
+    # uart.start_receive()
 
     time_cnt = 0
     while True:
@@ -59,10 +59,11 @@ if __name__ == '__main__':
             time_cnt = 0
 
         if time_cnt % 5 == 0:
-            data['sensor']['temp'], data['sensor']['humi'], data['sensor']['pres'] = \
-                uart.get_data()
+            print(f'------ {datetime.now()} ------')
+            # data['sensor']['temp'], data['sensor']['humi'], data['sensor']['pres'] = \
+            #     uart.get_data()
 
-            ac.update(data['sensor'])
+            ac.update()
             
             # ac.ps.check_status()
             # data['hvac'] = ac.get_state_message()
